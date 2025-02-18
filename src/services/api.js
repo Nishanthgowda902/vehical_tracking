@@ -1,6 +1,6 @@
 import mqtt from 'precompiled-mqtt';
 
-const API_BASE_URL = "https://vehical-tracking.onrender.com";
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const getLatestLocation = async (vehicleId) => {
   try {
