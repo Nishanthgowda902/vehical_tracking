@@ -42,27 +42,36 @@ export const publishVehicleStatus = async (vehicleId, isOn) => {
     
     return new Promise((resolve, reject) => {
       client.on('connect', () => {
+        // Format the message according to the specified format
         const message = JSON.stringify({ 
-          status: isOn ? 'ON' : 'OFF',
-          vehicleId: vehicleId,
-          timestamp: new Date().toISOString()
+          action: isOn ? 1 : 0
         });
 
-        const topic = `vehicle/${vehicleId}/status`;
+        // Set topic based on vehicle ID
+        const topic = vehicleId === 'vehicle-1' ? 'location/1' : 'location/2';
+        
+        console.log(`Publishing to topic ${topic}:`, message);
         
         client.publish(topic, message, (err) => {
-          client.end();
           if (err) {
+            console.error(`Error publishing to ${topic}:`, err);
             reject(err);
           } else {
+            console.log(`Successfully published to ${topic}`);
             resolve();
           }
+          client.end();
         });
       });
 
       client.on('error', (err) => {
+        console.error('MQTT client error:', err);
         client.end();
         reject(err);
+      });
+
+      client.on('connect', () => {
+        console.log('Connected to MQTT broker');
       });
 
       setTimeout(() => {
@@ -108,6 +117,7 @@ export const subscribeToVehicleUpdates = (vehicle, onMessage) => {
   client.on('message', (topic, message) => {
     try {
       const data = JSON.parse(message.toString());
+      console.log(`Received message on ${topic}:`, data);
       onMessage(data);
     } catch (error) {
       console.error('Error processing MQTT message:', error);
