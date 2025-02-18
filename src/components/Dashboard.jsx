@@ -7,13 +7,21 @@ function Dashboard({ vehicles, toggleVehicle, toggleDoorLock, onAddVehicle }) {
   const [lastUpdate] = React.useState('12:56:40 PM');
   
   const handleToggle = async (vehicleId) => {
-    toggleVehicle(vehicleId);
+    // Only publish MQTT message for non-custom vehicles
     if (!vehicles[vehicleId].isCustom) {
       try {
+        console.log(`Attempting to publish status for ${vehicleId}...`);
+        // First publish the MQTT message
         await publishVehicleStatus(vehicleId, !vehicles[vehicleId].isOn);
+        console.log(`Successfully toggled ${vehicleId} to ${!vehicles[vehicleId].isOn ? 'ON' : 'OFF'}`);
+        // Then update the local state
+        toggleVehicle(vehicleId);
       } catch (error) {
         console.error('Error publishing vehicle status:', error);
       }
+    } else {
+      // For custom vehicles, just update the local state
+      toggleVehicle(vehicleId);
     }
   };
 
